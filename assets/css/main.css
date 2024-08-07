@@ -1,0 +1,85 @@
+@import url('goog://asset/fonts/orbitron/orbitron.css');
+@import url('goog://asset/fonts/titillium-web/titillium-web.css');
+@import url('goog://asset/fonts/ibm-plex-mono/ibm-plex-mono.css');
+
+body {
+    background: url(goog://asset/img/background.png) no-repeat center center fixed;
+    background-size: cover;
+}
+
+.main-container {
+    width: 600px;
+    height: inherit;
+    margin: 50px auto 10px auto;
+    padding: 20px 30px 30px 30px;
+
+    align-content: center;
+    align-items: center;
+    text-align: center;
+
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 7px;
+    border-color: rgb(81, 43, 129);
+
+    background-color: rgb(53, 21, 93);
+    opacity: 97%;
+
+    display: grid;
+}
+
+hr {
+    border: 1.5px solid;
+    border-radius: 1px;
+    border-color: color: rgb(255, 255, 255);
+}
+
+#clock {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 50px;
+    color: rgb(255, 255, 255);
+    text-align: center;
+}
+
+
+.bookmarks {
+    height: inherit;
+    margin: auto;
+    font-size: 17px;
+    font-family: 'Titillium Web', sans-serif;
+    padding: 15px;
+    padding-top: 10px;
+    color: rgb(255, 255, 255);
+}
+table {
+    width: 100%;
+}
+.bookmark {
+    width: 100px; 
+    height: 100px;
+}
+div .bookmark {
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    border: 1px solid;
+    border-radius: 5px;
+    border-color: rgb(255, 255, 255);
+    transition: border-radius 100ms linear;
+}
+div .bookmark:hover {
+    border-radius: 15px;
+    transition: border-radius 100ms linear;
+}
+
+a {
+    color: rgb(255, 255, 255);
+    transition: color 100ms linear;
+    text-decoration: none;
+}
+
+a:hover {
+    color: rgb(127, 190, 255);
+    transition: color 100ms linear;
+}
