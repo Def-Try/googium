@@ -1,4 +1,7 @@
 import sys
+import os
+
+os.chdir(os.path.dirname(__file__))
 
 from PyQt5.QtWebEngineWidgets import *
 from PyQt5.QtWidgets import *

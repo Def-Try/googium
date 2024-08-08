@@ -1,245 +1,126 @@
 from PyQt5.QtNetwork import QNetworkProxy
 
-import socket, sys, datetime, time
+import socket, sys
 from _thread import start_new_thread
+from urllib.parse import urlparse
+import random
+
+BUFFER_SIZE = 1024 * 64
 
 
 class ProxyRunner:
     # Constructors initializing basic architecture
-    def __init__(self, blacklisted_ips=False, blacklist_websites=False):
-        self.max_conn = 0
-        self.buffer_size = 0
-        self.socket = 0
-        self.port = 0
-        self.blacklisted_ip_lookup = blacklisted_ips
-        self.blacklist_websites_lookup = blacklist_websites
+    def __init__(self, host='127.0.0.1', port=6913):
+        self.host = host
+        self.port = port
 
-    # Helper Function to get Time Stamp
-    def getTimeStampp(self):
-        return "[" + str(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')) + "]"
-
-    # Function which triggers the server
-    def start_server(self, conn=5, buffer=4096, port=8080):
+    def start_server(self, conn=5):
         try:
-            self.listen(conn, buffer, port)
-
-        except KeyboardInterrupt:
-            print(self.getTimeStampp() + "   Interrupting Server.")
-            time.sleep(.5)
-
+            self.listen(conn)
+        except Exception as e:
+            print("Terminating proxy server!")
+            print(e)
         finally:
-            print(self.getTimeStampp() + "   Stopping Server...")
             sys.exit()
 
     # Listener for incoming connections
-    def listen(self, No_of_conn, buffer, port):
+    def listen(self, max_conns):
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.bind(('', port))
-            s.listen(No_of_conn)
-            print(self.getTimeStampp() + "   Listening...")
-
-        except:
-            print(self.getTimeStampp() + "   Error: Cannot start listening...")
-            sys.exit(1)
+            s.bind((self.host, self.port))
+            s.listen(max_conns)
+            print("Proxy server listening...")
+        except Exception as e:
+            print("Could not start up")
+            raise e
 
         while True:
-            # Try to accept new connections and read the connection data in another thread
             try:
                 conn, addr = s.accept()
-                # print(self.getTimeStampp() + "   Request received from: ", addr)
-                start_new_thread(self.connection_read_request, (conn, addr, buffer))
-
+                start_new_thread(self.handle_connection, (conn,))
             except Exception as e:
-                print(self.getTimeStampp() + "  Error: Cannot establish connection..." + str(e))
-                sys.exit(1)
+                print("Could not establish a connection")
+                raise e
 
-        s.close()
-
-    # helper Function to generate header to send response in HTTPS connections
-    def generate_header_lines(self, code, length):
-        h = ''
-        if code == 200:
-            # Status code
-            h = 'HTTP/1.1 200 OK\n'
-            h += 'Server: Jarvis\n'
-
-        elif code == 404:
-            # Status code
-            h = 'HTTP/1.1 404 Not Found\n'
-            h += 'Date: ' + time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()) + '\n'
-            h += 'Server: Jarvis\n'
-
-        h += 'Content-Length: ' + str(length) + '\n'
-        h += 'Connection: close\n\n'
-
-        return h
-
-    # Function to read request data
-    def connection_read_request(self, conn, addr, buffer):
-        # Try to split necessary info from the header
-        try:
-            request = conn.recv(buffer)
-            header = request.split(b'\n')[0]
-            requested_file = request
-            requested_file = requested_file.split(b' ')
-            url = header.split(b' ')[1]
-
-            # Stripping Port and Domain
-            hostIndex = url.find(b"://")
-            if hostIndex == -1:
-                temp = url
-            else:
-                temp = url[(hostIndex + 3):]
-
-            portIndex = temp.find(b":")
-
-            serverIndex = temp.find(b"/")
-            if serverIndex == -1:
-                serverIndex = len(temp)
-
-            # If no port in header i.e, if http connection then use port 80 else the port in header
-            webserver = ""
-            port = -1
-            if (portIndex == -1 or serverIndex < portIndex):
-                port = 80
-                webserver = temp[:serverIndex]
-            else:
-                port = int((temp[portIndex + 1:])[:serverIndex - portIndex - 1])
-                webserver = temp[:portIndex]
-
-            # Stripping requested file to see if it exists in cache
-            requested_file = requested_file[1]
-            print("Requested File ", requested_file)
-
-            # Stripping method to find if HTTPS (CONNECT) or HTTP (GET)
-            method = request.split(b" ")[0]
-
-            # Checking for blacklisted ips
-            if addr[0] in self.blacklisted_ip_lookup:
-                print(self.getTimeStampp() + "    IP Blacklisted")
-                conn.close()
-
-            # Checking for blacklisted domains
-            target = webserver
-            target = target.replace(b"http://", b"").split(b".")[1].decode("utf-8")
+    def handle_connection(self, conn):
+        request = conn.recv(BUFFER_SIZE).decode()
+        beginning = request.split('\r\n')[0]
+        headers = ('\r\n'.join(request.split('\r\n')[1:]).split('\r\n\r\n')[0]).split('\r\n')
+        headers = {i.split(":")[0].strip().lower(): i.split(":")[1].strip() for i in headers}
+        del headers['proxy-connection']
+        data = '\r\n\r\n'.join('\r\n'.join(request.split('\r\n')[1:]).split('\r\n\r\n')[1:])
+        method, *host, version = beginning.split(" ")
+        host = " ".join(host).strip()
+        if method == "GET":
+            self.method_http(conn, method, host, headers, data)
+        elif method == "CONNECT":
+            # CONNECT often raises random errors when connection is closed from either side.
+            # We don't care about it, so let's ignore
             try:
-                if target in self.blacklist_websites_lookup:
-                    print(self.getTimeStampp() + "   Website Blacklisted")
-                    conn.close()
-            except:
+                self.method_https(conn, method, host, headers, data)
+            except Exception:
                 pass
+        return conn.close()
 
-            # If method is CONNECT (HTTPS)
-            if method == b"CONNECT":
-                print(self.getTimeStampp() + "   CONNECT Request")
-                self.https_proxy(webserver, port, conn, request, addr, buffer, requested_file)
+    @staticmethod
+    def method_http(conn, method, uri, headers, data):
+        request = (f"{method}  {uri} HTTP/1.1\r\nConnection: close\r\n"
+                   f"{'\r\n'.join(''.join(random.choice((str.upper,str.lower))(x) for x in k) + ':' + v for k, v in headers.items())}\r\n\r\n"
+                   f"{data}").encode()
+        # F*ck active DPI:
+        #     1. add additional space between method and URI
+        #     2. Randomize case for header names
+        uriparsed = urlparse(uri)
+        if uriparsed.scheme != 'http':
+            raise ValueError("attempted to request GET from non-HTTP protocol?")
+        host = uriparsed.netloc.split(':')[0]
+        port = int(uriparsed.netloc.split(':')[1]) if ':' in uriparsed.netloc else 80
 
-            # If method is GET (HTTP)
-            else:
-                print(self.getTimeStampp() + "   GET Request")
-                self.http_proxy(webserver, port, conn, request, addr, buffer, requested_file)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, port))
+        s.send(request)
+        while s.fileno() != -1:
+            d = s.recv(BUFFER_SIZE)
+            if d == b'':
+                break
+            conn.send(d)
+        return
 
-        except Exception as e:
-            # print(self.getTimeStampp() + "  Error: Cannot read connection request..." + str(e))
-            # self.write_log(self.getTimeStampp() + "  Error: Cannot read connection request..." + str(e))
-            return
+    @staticmethod
+    def method_https(conn, method, uri, headers, data):
+        uriparsed = urlparse("h://" + uri)
+        host = uriparsed.netloc.split(':')[0]
+        port = int(uriparsed.netloc.split(':')[1]) if ':' in uriparsed.netloc else 80
 
-    # Function to handle HTTP Request
-    def http_proxy(self, webserver, port, conn, request, addr, buffer_size, requested_file):
-        # Stripping file name
-        requested_file = requested_file.replace(b".", b"_").replace(b"http://", b"_").replace(b"/", b"")
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, port))
 
-        # Trying to find in cache
-        try:
-            print(self.getTimeStampp() + "  Searching for: ", requested_file)
-            print(self.getTimeStampp() + "  Cache Hit")
-            file_handler = open(b"cache/" + requested_file, 'rb')
-            response_content = file_handler.read()
-            file_handler.close()
-            response_headers = self.generate_header_lines(200, len(response_content))
-            conn.send(response_headers.encode("utf-8"))
-            time.sleep(1)
-            conn.send(response_content)
-            conn.close()
+        conn.send(b'HTTP/1.1 200 Connection Established\r\n\r\n')
 
-        # If no cache hit, request from web
-        except Exception as e:
-            print(e)
+        conn.settimeout(1)
+        s.settimeout(1)
+
+        while s.fileno() != -1:
             try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.connect((webserver, port))
-                s.send(request)
-
-                print(self.getTimeStampp() + "  Forwarding request from ", addr, " to ", webserver)
-                # Makefile for socket
-                file_object = s.makefile('wb', 0)
-                file_object.write(b"GET " + b"http://" + requested_file + b" HTTP/1.0\n\n")
-                # Read the response into buffer
-                file_object = s.makefile('rb', 0)
-                buff = file_object.readlines()
-                temp_file = open(b"cache/" + requested_file, "wb+")
-                for i in range(0, len(buff)):
-                    temp_file.write(buff[i])
-                    conn.send(buff[i])
-
-                print(self.getTimeStampp() + "  Request of client " + str(addr) + " completed...")
-                s.close()
-                conn.close()
-
-            except Exception as e:
-                print(self.getTimeStampp() + "  Error: forward request..." + str(e))
-                return
-
-    # Function to handle HTTPS Connection
-    def https_proxy(self, webserver, port, conn, request, addr, buffer_size, requested_file):
-        # Stripping for filename
-        requested_file = requested_file.replace(b".", b"_").replace(b"http://", b"_").replace(b"/", b"")
-
-        # Trying to find in cache
-        try:
-            print(self.getTimeStampp() + "  Searching for: ", requested_file)
-            file_handler = open(b"cache/" + requested_file, 'rb')
-            print("\n")
-            print(self.getTimeStampp() + "  Cache Hit\n")
-            response_content = file_handler.read()
-            file_handler.close()
-            response_headers = self.generate_header_lines(200, len(response_content))
-            conn.send(response_headers.encode("utf-8"))
-            time.sleep(1)
-            conn.send(response_content)
-            conn.close()
-
-        # If no Cache Hit, request data from web
-        except:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                d = conn.recv(BUFFER_SIZE)
+            except TimeoutError:
+                break
+            while d != b'':
+                s.send(d)
+                try:
+                    d = conn.recv(BUFFER_SIZE)
+                except TimeoutError:
+                    break
             try:
-                # If successful, send 200 code response
-                s.connect((webserver, port))
-                reply = "HTTP/1.0 200 Connection established\r\n"
-                reply += "Proxy-agent: Jarvis\r\n"
-                reply += "\r\n"
-                conn.sendall(reply.encode())
-            except socket.error as err:
-                pass
-                # print(self.getTimeStampp() + "  Error: No Cache Hit in HTTPS because " + str(err))
-                # self.write_log(self.getTimeStampp() + "  Error: No Cache Hit in HTTPS beacuse" + str(err))
-
-            conn.setblocking(0)
-            s.setblocking(0)
-            print(self.getTimeStampp() + "  HTTPS Connection Established")
-            while True:
+                d = s.recv(BUFFER_SIZE)
+            except TimeoutError:
+                break
+            while d != b'':
+                conn.send(d)
                 try:
-                    request = conn.recv(buffer_size)
-                    s.sendall(request)
-                except socket.error as err:
-                    pass
-
-                try:
-                    reply = s.recv(buffer_size)
-                    conn.sendall(reply)
-                except socket.error as e:
-                    pass
+                    d = s.recv(BUFFER_SIZE)
+                except TimeoutError:
+                    break
 
 
 class Proxy(QNetworkProxy):
@@ -252,4 +133,4 @@ class Proxy(QNetworkProxy):
     def init(self):
         QNetworkProxy.setApplicationProxy(self)
         server = ProxyRunner()
-        server.start_server()
+        start_new_thread(server.start_server, tuple())
