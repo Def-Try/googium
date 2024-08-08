@@ -70,10 +70,13 @@ class ProxyRunner:
                 pass
             except ConnectionResetError:
                 pass
+            except BrokenPipeError:
+                pass
         return conn.close()
 
     @staticmethod
     def method_http(conn, method, uri, headers, data):
+        print(f"HTTP request: {method} {uri}")
         request = f"{method}  {uri} HTTP/1.1\r\nConnection: close\r\n"
         for k, v in headers.items():
             request += ''.join(random.choice((str.upper, str.lower))(x) for x in k) + ":" + v
@@ -106,6 +109,7 @@ class ProxyRunner:
 
     @staticmethod
     def method_https(conn, _1, uri, _2, _3):
+        print(f"HTTPS request: {uri}")
         uriparsed = urlparse("h://" + uri)
         host = uriparsed.netloc.split(':')[0]
         port = int(uriparsed.netloc.split(':')[1]) if ':' in uriparsed.netloc else 80
@@ -120,15 +124,17 @@ class ProxyRunner:
 
         sent_packets = 0
         while s.fileno() != -1:
+            if sent_packets < 3:
+                print(f"  HTTPS for {uri}: packet #{sent_packets}")
             sent_packets += 1
             try:
                 d = conn.recv(PROXY_BUFFER_SIZE)
             except TimeoutError:
                 pass
             while d != b'':
-                if sent_packets < 12:
+                if sent_packets < 3:
                     # HTTPS handshake isn't completed, choke our connection until all data is encrypted
-                    for choke in get_chokes(d, 128, 512):
+                    for choke in get_chokes(d, 256, 512):
                         s.sendall(choke)
                     # F*ck active DPI:
                     #     Fragmentation of data, making DPI "choke" on small packets of data
