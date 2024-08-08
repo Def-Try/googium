@@ -1,11 +1,8 @@
-import sys
 from PyQt5.QtWidgets import *
-from PyQt5.QtWebEngineWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
 
 from browser.config import *
-from .page import Page
+from browser.front.page import Page
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -18,8 +15,8 @@ class MainWindow(QMainWindow):
         self.activePage = 0
 
         self.pagebar = QTabWidget(self)
-        self.pagebar.currentChanged.connect(self.__tabChanged)
-        self.pagebar.tabCloseRequested.connect(self.__tabClosed)
+        self.pagebar.currentChanged.connect(self.__tab_changed)
+        self.pagebar.tabCloseRequested.connect(self.__tab_closed)
         self.pagebar.addTab(QWidget(), "New Tab")
         self.pagebar.setTabsClosable(True)
         self.pagebar.setTabShape(1)
@@ -27,17 +24,17 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.pagebar)
 
-    def newTab(self):
+    def new_tab(self):
         page = Page(self)
         page.pageselector = self.pagebar.insertTab(self.pagebar.count() - 1, page, f'Page #{self.pagebar.count()}')
         return self.pagebar.count() - 2
 
-    def __tabChanged(self, index):
+    def __tab_changed(self, index):
         if index == self.pagebar.count() - 1:
-            self.pagebar.setCurrentIndex(self.newTab())
+            self.pagebar.setCurrentIndex(self.new_tab())
         self.setWindowTitle(f"{BROWSER_NAME} - {self.pagebar.tabText(index)}")
 
-    def __tabClosed(self, index):
+    def __tab_closed(self, index):
         if index == self.pagebar.count() - 1:
             return
         if self.pagebar.currentIndex() == index:
