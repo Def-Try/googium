@@ -9,8 +9,6 @@ from browser.back.proxy import Proxy
 from browser.config import *
 from browser.front.browser import MainWindow
 
-os.chdir(os.path.dirname(__file__))
-
 protocol, proxy = Protocol(), None
 if PROXY_ACTIVE:
     proxy = Proxy()
