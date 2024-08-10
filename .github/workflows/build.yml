@@ -29,6 +29,7 @@ jobs:
           pip install --requirement requirements.txt
           pip install pyinstaller
       - name: Distribution generation (step 1).
+        shell: bash
         run: |
           pyinstaller main.py --hide-console hide-early --noconfirm -i data/icon.ico \
             --optimize 2 -w --distpath ./dist/full
@@ -49,6 +50,7 @@ jobs:
           mv ./dist/debug/main/main ./dist/complete/browser-debug
           mv ./dist/full/main/main ./dist/complete/browser
       - name: Distribution generation (step 3).
+        shell: bash
         run: |
           rm ./dist/debug ./dist/full -rf
           mv ./dist/complete/* ./dist
