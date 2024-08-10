@@ -54,7 +54,7 @@ jobs:
           mv ./dist/complete/* ./dist
           rm ./dist/complete -rf
           cp ./assets ./dist -r
-          apt install zip
+          sudo apt install zip
           zip distribution.zip -r ./dist/*
 
       - uses: actions/upload-artifact@v4
