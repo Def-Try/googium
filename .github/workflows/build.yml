@@ -1,0 +1,56 @@
+name: Build distributions
+
+on:
+  workflow_run:
+    workflows: ["Reformat code"]
+    branches: [main]
+    types:
+      - completed
+
+jobs:
+  build:
+    runs-on: [ubuntu-latest, windows-latest]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.12
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install --requirement requirements.txt
+          pip install pyinstaller
+      - name: Distribution generation (step 1).
+        run: |
+          pyinstaller main.py --hide-console hide-early --noconfirm -i data/icon.ico \
+            --optimize 2 -w --distpath ./dist/full
+          pyinstaller main.py --noconfirm -i data/icon.ico --optimize 2
+            --distpath ./dist/debug
+          mkdir ./dist/complete
+          mv ./dist/debug/_internal ./dist/complete
+      - name: Windows specific distribution generations (step 2).
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mv ./dist/debug/main.exe ./dist/complete/browser-debug.exe
+          mv ./dist/full/main.exe ./dist/complete/browser.exe
+      - name: Linux specific distribution generation (step 2).
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          mv ./dist/debug/main ./dist/complete/browser-debug
+          mv ./dist/full/main ./dist/complete/browser
+      - name: Distribution generation (step 3).
+        run: |
+          rm ./dist/debug ./dist/full -rf
+          mv ./dist/complete/* ./dist
+          rm ./dist/complete -rf
+          cp ./assets ./dist
+          zip distribution.zip -r ./dist/*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: distribution.zip
