@@ -1,13 +1,13 @@
-import sys
 import os
+import sys
 
 from PyQt5.QtWebEngineWidgets import *
 from PyQt5.QtWidgets import *
 
 from browser.back.protocol import Protocol
 from browser.back.proxy import Proxy
-from browser.front.browser import MainWindow
 from browser.config import *
+from browser.front.browser import MainWindow
 
 os.chdir(os.path.dirname(__file__))
 
@@ -17,10 +17,12 @@ if PROXY_ACTIVE:
 browser = QApplication(sys.argv)
 protocol.preinit()
 
-QApplication.setApplicationName('')
+QApplication.setApplicationName("")
 window = MainWindow()
 window.setMinimumSize(640, 480)
-window.setMaximumSize(browser.primaryScreen().size().width(), browser.primaryScreen().size().height())
+window.setMaximumSize(
+    browser.primaryScreen().size().width(), browser.primaryScreen().size().height()
+)
 window.showMaximized()
 
 protocol.init(browser, QWebEngineProfile.defaultProfile())
