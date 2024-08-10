@@ -26,7 +26,9 @@ class MainWindow(QMainWindow):
 
     def new_tab(self):
         page = Page(self)
-        page.pageselector = self.pagebar.insertTab(self.pagebar.count() - 1, page, f'Page #{self.pagebar.count()}')
+        page.pageselector = self.pagebar.insertTab(
+            self.pagebar.count() - 1, page, f"Page #{self.pagebar.count()}"
+        )
         return self.pagebar.count() - 2
 
     def __tab_changed(self, index):
