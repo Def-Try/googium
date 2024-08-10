@@ -46,7 +46,6 @@ jobs:
         run: |
           echo "TAGNAME=$(cat data/version.txt)" >> $GITHUB_ENV
           echo "RELEASENAME=googium $(cat data/version.txt)" >> $GITHUB_ENV
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         env:
@@ -55,7 +54,7 @@ jobs:
           tag_name: ${{env.TAGNAME}}
           release_name: ${{env.RELEASENAME}}
           body_path: data/release-changelog.txt
-          draft: false
+          draft: true
           prerelease: false
           files: |
             distro-Linux.zip
