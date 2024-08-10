@@ -35,6 +35,8 @@ jobs:
           pyinstaller main.py --noconfirm -i data/icon.ico --optimize 2 \
             --distpath ./dist/debug
           mkdir ./dist/complete
+          ls ./dist/debug
+          ls ./dist
           mv ./dist/debug/_internal ./dist/complete
       - name: Windows specific distribution generations (step 2).
         if: runner.os == 'Windows'
