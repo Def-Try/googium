@@ -4,19 +4,36 @@ on:
   workflow_run:
     workflows: ["Build distributions"]
     branches: [master]
-    tags:
-      - v*
     types:
       - completed
 
 jobs:
+  verify:
+    outputs:
+      status: ${{steps.early.conclusion}}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get latest tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
+        id: latest-tag
+        with:
+          semver_only: true
+      - name: Verify version
+        id: early
+        run: |
+          if [[ "${{steps.latest-tag.outputs.tag}}" == "$(cat data/version.txt)" ]]; then
+            exit 1
+          else
+            exit 0
+          fi
   release:
+    needs: verify
+    if: needs.verify.outputs.status == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v3
-      - name: Verify version
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v6
         with:
