@@ -32,7 +32,7 @@ jobs:
         run: |
           pyinstaller main.py --hide-console hide-early --noconfirm -i data/icon.ico \
             --optimize 2 -w --distpath ./dist/full
-          pyinstaller main.py --noconfirm -i data/icon.ico --optimize 2
+          pyinstaller main.py --noconfirm -i data/icon.ico --optimize 2 \
             --distpath ./dist/debug
           mkdir ./dist/complete
           mv ./dist/debug/_internal ./dist/complete
