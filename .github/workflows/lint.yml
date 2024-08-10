@@ -3,7 +3,7 @@ name: Linting code check
 on:
   workflow_run:
     workflows: ["Reformat code"]
-    branches: [main]
+    branches: [master]
     types:
       - completed
 

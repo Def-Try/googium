@@ -3,7 +3,7 @@ name: Build distributions
 on:
   workflow_run:
     workflows: ["Reformat code"]
-    branches: [main]
+    branches: [master]
     types:
       - completed
 

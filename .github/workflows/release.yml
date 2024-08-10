@@ -3,7 +3,7 @@ name: Create release
 on:
   workflow_run:
     workflows: ["Build distributions"]
-    branches: [main]
+    branches: [master]
     types:
       - completed
 
