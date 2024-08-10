@@ -20,8 +20,11 @@ jobs:
           github_token: ${{secrets.GITHUB_TOKEN}}
           run_id: ${{github.event.workflow_run.id}}
           workflow_conclusion: success
+          skip_unpack: false
       - name: helper
         run: |
+          ls
+          echo ---
           ls *
           exit 1
 
