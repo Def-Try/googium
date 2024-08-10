@@ -34,6 +34,7 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v3
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v6
         with:
@@ -41,12 +42,8 @@ jobs:
           run_id: ${{github.event.workflow_run.id}}
           workflow_conclusion: success
           skip_unpack: true
-      - name: helper
+      - name: Initialise variables
         run: |
-          ls
-          echo ---
-          ls *
-          exit 1
           echo "TAGNAME=$(cat data/version.txt)" >> $GITHUB_ENV
           echo "RELEASENAME=googium $(cat data/version.txt)" >> $GITHUB_ENV
 
@@ -60,3 +57,6 @@ jobs:
           body_path: data/release-changelog.txt
           draft: false
           prerelease: false
+          files: |
+            distro-Linux.zip
+            distro-Windows.zip
