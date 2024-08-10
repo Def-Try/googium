@@ -4,6 +4,8 @@ on:
   workflow_run:
     workflows: ["Build distributions"]
     branches: [master]
+    tags:
+      - v*
     types:
       - completed
 
@@ -14,23 +16,25 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v3
+      - name: Verify version
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v6
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
           run_id: ${{github.event.workflow_run.id}}
           workflow_conclusion: success
-          skip_unpack: false
+          skip_unpack: true
       - name: helper
         run: |
           ls
           echo ---
           ls *
           exit 1
+          echo "TAGNAME=$(cat data/version.txt)" >> $GITHUB_ENV
+          echo "RELEASENAME=googium $(cat data/version.txt)" >> $GITHUB_ENV
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         with:
@@ -38,4 +42,4 @@ jobs:
           release_name: ${{env.RELEASENAME}}
           body_path: data/release-changelog.txt
           draft: false
-          prerelease: ${{env.PRERELEASE}}
+          prerelease: false
