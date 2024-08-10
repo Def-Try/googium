@@ -2,84 +2,217 @@
 @import url('goog://asset/fonts/titillium-web/titillium-web.css');
 @import url('goog://asset/fonts/ibm-plex-mono/ibm-plex-mono.css');
 
+:root {
+    --bg-color: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+    --container-bg: rgba(255, 255, 255, 0.8);
+    --text-color: #333;
+    --bookmark-bg: #fff;
+    --bookmark-hover-shadow: rgba(0, 0, 0, 0.1);
+    --input-bg: #f0f0f0;
+    --input-border: #ccc;
+    --button-bg: #4CAF50;
+    --button-text: #fff;
+    --icon-filter: invert(0%);
+}
+
+body.dark-mode {
+    --bg-color: linear-gradient(120deg, #2c3e50 0%, #1a2a38 100%);
+    --container-bg: rgba(30, 30, 30, 0.8);
+    --text-color: #f0f0f0;
+    --bookmark-bg: #2c3e50;
+    --bookmark-hover-shadow: rgba(255, 255, 255, 0.1);
+    --input-bg: #1a2a38;
+    --input-border: #4a6572;
+    --button-bg: #2ecc71;
+    --button-text: #1a2a38;
+    --icon-filter: invert(100%);
+}
+
 body {
-    background: url(goog://asset/img/background.png) no-repeat center center fixed;
-    background-size: cover;
-}
-
-.main-container {
-    width: 600px;
-    height: inherit;
-    margin: 50px auto 10px auto;
-    padding: 20px 30px 30px 30px;
-
-    align-content: center;
-    align-items: center;
-    text-align: center;
-
-    border-style: solid;
-    border-width: 2px;
-    border-radius: 7px;
-    border-color: rgb(81, 43, 129);
-
-    background-color: rgb(53, 21, 93);
-    opacity: 97%;
-
-    display: grid;
-}
-
-hr {
-    border: 1.5px solid;
-    border-radius: 1px;
-    border-color: color: rgb(255, 255, 255);
-}
-
-#clock {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 50px;
-    color: rgb(255, 255, 255);
-    text-align: center;
-}
-
-
-.bookmarks {
-    height: inherit;
-    margin: auto;
-    font-size: 17px;
-    font-family: 'Titillium Web', sans-serif;
-    padding: 15px;
-    padding-top: 10px;
-    color: rgb(255, 255, 255);
-}
-table {
-    width: 100%;
-}
-.bookmark {
-    width: 100px; 
-    height: 100px;
-}
-div .bookmark {
-    text-align: center;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: var(--bg-color);
+    color: var(--text-color);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    display: flex;
-    border: 1px solid;
-    border-radius: 5px;
-    border-color: rgb(255, 255, 255);
-    transition: border-radius 100ms linear;
+    transition: background 0.3s ease;
 }
-div .bookmark:hover {
+
+.container {
+    background-color: var(--container-bg);
     border-radius: 15px;
-    transition: border-radius 100ms linear;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    max-width: 800px;
+    width: 90%;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-a {
-    color: rgb(255, 255, 255);
-    transition: color 100ms linear;
+.clock {
+    font-size: 3em;
+    text-align: center;
+    margin-bottom: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    text-align: center;
+}
+
+.date {
+    font-size: 1.2em;
+    text-align: center;
+    margin-bottom: 30px;
+    color: var(--text-color);
+    font-family: 'IBM Plex Mono', monospace;
+    text-align: center;
+}
+
+.bookmarks {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.bookmark {
+    background-color: var(--bookmark-bg);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
     text-decoration: none;
+    color: var(--text-color);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+    position: relative;
+    font-family: 'Titillium Web', sans-serif;
 }
 
-a:hover {
-    color: rgb(127, 190, 255);
-    transition: color 100ms linear;
+.bookmark:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px var(--bookmark-hover-shadow);
+}
+
+.bookmark-icon {
+    font-size: 32px;
+    margin-bottom: 5px;
+}
+
+.theme-toggle, .edit-mode-toggle {
+    position: absolute;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    padding: 10px;
+    transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover, .edit-mode-toggle:hover {
+    transform: scale(1.1);
+}
+
+.theme-toggle {
+    top: 20px;
+    right: 20px;
+}
+
+.edit-mode-toggle {
+    top: 20px;
+    left: 20px;
+}
+
+.edit-bookmark {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+    display: none;
+}
+
+.edit-bookmark:hover {
+    opacity: 1;
+}
+
+.add-bookmark {
+    background-color: var(--bookmark-bg);
+    border: 2px dashed var(--text-color);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    display: none;
+}
+
+.add-bookmark:hover {
+    transform: scale(1.05);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: var(--container-bg);
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    width: 300px;
+    max-width: 80%;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 8px;
+    margin: 10px 0;
+    box-sizing: border-box;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-color);
+    border-radius: 4px;
+}
+
+.modal-content button {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.modal-content button:hover {
+    opacity: 0.8;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+    }
+    .bookmarks {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+    .clock {
+        font-size: 2.5em;
+    }
+    .date {
+        font-size: 1em;
+    }
 }

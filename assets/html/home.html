@@ -1,35 +1,36 @@
-<!DOCTYPE html>
 <html>
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="icon" href="goog://asset/img/icon.png">
-	<link rel="stylesheet" href="goog://asset/css/main.css">
-	<title>Home</title>
-</head>
-<body>
-	<div class="main-container">
-		<div id="clock"></div>
-		<div class="bookmarks">
 
-			<table>
-				<tr>
-					<td><div class="bookmark"><a class="bookmark" href="https://google.com/">Google</a></div></td>
-					<td><div class="bookmark"><a class="bookmark" href="https://mail.google.com/mail/u/0/">Gmail</a></div></td>
-					<td><div class="bookmark"><a class="bookmark" href="https://www.youtube.com/">YouTube</a></div></td>
-					<td><div class="bookmark"><a class="bookmark" href="https://github.com/8dcc">Github</a></div></td>
-					<td><div class="bookmark"><a class="bookmark" href="https://stackoverflow.com/">Stack Overflow</a></div></td>
-				</tr>
-				<tr>
-					<td><div class="bookmark"><a class="bookmark" href="https://temp.sh/">temp.sh</a></div></td>
-					<td><div class="bookmark"><a class="bookmark" href="https://en.wikipedia.org/wiki/Main_Page">Wikipedia</a></div></td>
-					<td><div class="bookmark"><a class="bookmark" href="https://wiki.archlinux.org">Arch wiki</a></div></td>
-					<td><div class="bookmark"><a class="bookmark" href="https://wiki.gentoo.org/wiki/Main_Page">Gentoo wiki</a></div></td>
-					<td><div class="bookmark"><a class="bookmark" href="https://man.cx/">Linux manpages</a></div></td>
-				</tr>
-			</table>
-		</div>
-	</div>
+<head>
+    <title>Home</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="goog://asset/img/icon.png">
+    <link rel="stylesheet" href="goog://asset/css/main.css">
+</head>
+
+<body>
+    <button class="theme-toggle" id="themeToggle">
+        <span class="light-icon">☀️</span>
+        <span class="dark-icon">🌙</span>
+    </button>
+    <button class="edit-mode-toggle" id="editModeToggle">✏️</button>
+    <div class="container">
+        <div class="clock" id="clock"></div>
+        <div class="date" id="date"></div>
+        <div class="bookmarks" id="bookmarks"></div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <input type="text" id="editName" placeholder="Bookmark Name">
+            <input type="url" id="editUrl" placeholder="Bookmark URL">
+            <input type="text" id="editIcon" placeholder="Icon (UTF-8 character)">
+            <button id="saveEdit">Save</button>
+            <button id="deleteBookmark">Delete</button>
+            <button id="cancelEdit">Cancel</button>
+        </div>
+    </div>
+    <script type="text/javascript" src="goog://asset/js/main.js"></script>
 </body>
-<script type="text/javascript" src="goog://asset/js/clock.js"></script>
+
 </html>
