@@ -43,7 +43,7 @@ jobs:
         run: |
           mv ./dist/debug/main/main.exe ./dist/complete/browser-debug.exe
           mv ./dist/full/main/main.exe ./dist/complete/browser.exe
-          echo "./browser.exe config" > ./dist/complete/start-config.bat
+          echo ".\browser.exe config" > ./dist/complete/start-config.bat
       - name: Linux specific distribution generation (step 2).
         if: runner.os == 'Linux'
         shell: bash

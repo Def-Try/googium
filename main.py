@@ -3,7 +3,7 @@ import sys
 
 if len(sys.argv) > 1 and sys.argv[1] == 'config':
     from browser.config import main
-    exit(main())
+    sys.exit(main())
 
 
 import qdarktheme
