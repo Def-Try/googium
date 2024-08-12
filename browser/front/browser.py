@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtWebEngineWidgets import *
 from PyQt5.QtGui import *
+from PyQt5.QtWebEngineWidgets import *
+from PyQt5.QtWidgets import *
 
 from browser.config import *
 from browser.front.page import Page
@@ -41,7 +41,9 @@ class MainWindow(QMainWindow):
         self.toolbar["home"].clicked.connect(lambda: self.pages[self.activePage].home())
 
         self.toolbar["useragent"].setIcon(QIcon("assets/icons/useragent_pc.svg"))
-        self.toolbar["useragent"].clicked.connect(lambda: self.pages[self.activePage].toggleUserAgent())
+        self.toolbar["useragent"].clicked.connect(
+            lambda: self.pages[self.activePage].toggleUserAgent()
+        )
 
         self.toolbar["urlbar"].returnPressed.connect(
             lambda: self.pages[self.activePage].setURL(self.toolbar["urlbar"].text())
