@@ -25,6 +25,9 @@ class Page(QWidget):
             raise ValueError("Page's useragent is invalid (not 'pc' or 'mobile')")
         self.setURL(QUrl(url))
         self.browser.profile().setHttpUserAgent(self.r_useragent)
+        self.browser.profile().setPersistentStoragePath(
+            USERDATA_PATH + "/persistent_storage"
+        )
         self.browser.loadStarted.connect(self.__loadStarted)
         self.browser.loadProgress.connect(self.__loadProgress)
         self.browser.loadFinished.connect(self.__loadFinished)
@@ -40,14 +43,22 @@ class Page(QWidget):
     def updateURL(self):
         self.browser.setUrl(QUrl(self.url))
 
-    def refresh(self):
-        self.browser.reload()
+    def reload(self):
+        self.browser.action(QWebEnginePage.WebAction.Reload).activate(
+            QAction.ActionEvent.Trigger
+        )
 
     def back(self):
-        self.browser.back()
+        self.history_ptr[0] -= 1
+        self.browser.action(QWebEnginePage.WebAction.Back).activate(
+            QAction.ActionEvent.Trigger
+        )
 
     def forward(self):
-        self.browser.forward()
+        self.history_ptr[0] += 1
+        self.browser.action(QWebEnginePage.WebAction.Forward).activate(
+            QAction.ActionEvent.Trigger
+        )
 
     def home(self):
         self.setURL(BROWSER_HOME)
@@ -97,6 +108,17 @@ class Page(QWidget):
         )
 
     def __updatedURL(self, url):
+        if self.history_ptr[0] != len(self.history[self.history_ptr[1]]):
+            self.history_ptr[1] += 1
+            self.history.append(
+                self.history[self.history_ptr[1] - 1][: self.history_ptr[0] - 1]
+            )
+        self.history_ptr[0] += 1
+        self.history[self.history_ptr[1]].append(url)
+        pprint.pprint(self.history)
+        print(self.history_ptr)
+        if not self.active:
+            return
         self.toolbar["urlbar"].setText(url.toString())
 
     def __titleChanged(self, title):
