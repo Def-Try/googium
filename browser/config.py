@@ -1,4 +1,5 @@
-from PyQt5.QtGui import QIntValidator, QDoubleValidator
+from PyQt5.QtCore import QRegExp
+from PyQt5.QtGui import QIntValidator, QDoubleValidator, QRegExpValidator
 from PyQt5.QtWidgets import (
     QApplication,
     QWidget,
@@ -10,12 +11,13 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QGridLayout,
     QGroupBox,
+    QComboBox,
 )
 import json
 import os
 import sys
 
-CONFIG_FILE = "browser/config.json"
+CONFIG_FILE = "userdata/config.json"
 
 
 class ConfigApp(QWidget):
@@ -52,10 +54,23 @@ class ConfigApp(QWidget):
             for n, (key, value) in enumerate(self.config.items()):
                 label = QLabel(key)
                 line_edit = QLineEdit(str(value))
-                if type(value) == float:
+                if isinstance(value, float):
                     line_edit.setValidator(QDoubleValidator(-(2**31), 2**31 - 1, 2))
-                elif type(value) == int:
+                    line_edit.type = float
+                if isinstance(value, int):
                     line_edit.setValidator(QIntValidator(-(2**31), 2**31 - 1, self))
+                    line_edit.type = int
+                if isinstance(value, bool):
+                    line_edit.setValidator(
+                        QRegExpValidator(QRegExp("True|False"), line_edit)
+                    )
+                    combobox = QComboBox()
+                    combobox.addItems(["True", "False"])
+                    combobox.setCurrentIndex(combobox.findText(str(value)))
+                    # combobox.setLineEdit(line_edit)
+                    combobox.line_edit = line_edit
+                    line_edit = combobox
+                    line_edit.type = bool
                 self.group_layout.addWidget(label, n, 0)
                 self.group_layout.addWidget(line_edit, n, 1)
 
@@ -78,8 +93,20 @@ class ConfigApp(QWidget):
         self.config = {}
         for i in range(self.group_layout.rowCount()):
             key = self.group_layout.itemAtPosition(i, 0).widget().text()
-            value = self.group_layout.itemAtPosition(i, 1).widget().text()
-            self.config[key] = value
+            value_widget = self.group_layout.itemAtPosition(i, 1).widget()
+            if isinstance(value_widget, QLineEdit):
+                value = value_widget.text()
+            elif isinstance(value_widget, QComboBox):
+                value = value_widget.currentText()
+            else:
+                value = "0"
+            type_ = type(r_cfg[i][1])
+            if type_ == bool:
+
+                def type_(x):
+                    return x == "True"
+
+            self.config[key] = type_(value)
 
         try:
             with open(self.config_file, "w") as f:
@@ -131,6 +158,41 @@ def load_cfg(populate_globals: bool = False):
         globals()[k] = v
     return config
 
+
+default_config = {
+    "BROWSER_NAME": "googium",
+    "BROWSER_HOME": "goog://home",
+    "BROWSER_USERAGENT_MOBILE": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.3",
+    "BROWSER_USERAGENT_PC": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.3",
+    "TAB_TITLE_CUTOFF": 20,
+    "PROXY_LISTEN_HOST": "127.0.0.1",
+    "PROXY_LISTEN_PORT": 6913,
+    "PROXY_BUFFER_SIZE": 65536,
+    "PROXY_ACTIVE": False,
+    "BROWSER_LAYOUT": 4,
+}
+
+try:
+    cfg = load_cfg()
+    have_keys = set(cfg.keys())
+    need_keys = set(default_config.keys())
+    missing = list(need_keys - have_keys)
+    if len(missing) > 0:
+        for k in missing:
+            cfg[k] = default_config[k]
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(default_config, f, indent=4)
+except Exception as e:
+    _ = os.path.splitext(CONFIG_FILE)
+    nam = _[0] + ".bak" + _[1]
+    try:
+        with open(CONFIG_FILE, "r") as fr:
+            with open(nam, "w") as fw:
+                fw.write(fr.read())
+    except Exception:
+        pass
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(default_config, f, indent=4)
 
 if __name__ == "__main__":
     main()

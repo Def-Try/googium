@@ -1,6 +1,14 @@
 import os
 import sys
 
+if sys.argv[1] == "config":
+    from browser.config import main
+
+    exit(main())
+
+
+import qdarktheme
+
 from PyQt5.QtWebEngineWidgets import *
 from PyQt5.QtWidgets import *
 
@@ -17,7 +25,9 @@ if PROXY_ACTIVE:
 browser = QApplication(sys.argv)
 protocol.preinit()
 
-QApplication.setApplicationName("")
+QApplication.setApplicationName("googium")
+browser.setPalette(qdarktheme.load_palette("light"))
+
 window = MainWindow()
 window.setMinimumSize(640, 480)
 window.setMaximumSize(

@@ -1,3 +1,5 @@
+from PyQt5.QtGui import *
+from PyQt5.QtWebEngineWidgets import *
 from PyQt5.QtWidgets import *
 
 from browser.config import *
@@ -14,7 +16,41 @@ class MainWindow(QMainWindow):
         self.pages = []
         self.activePage = 0
 
-        self.pagebar = QTabWidget(self)
+        self.pagebar = QTabBar(self)
+
+        self.toolbar = {
+            "back": QPushButton("Back"),
+            "forward": QPushButton("Forward"),
+            "refresh": QPushButton("Refresh"),
+            "home": QPushButton("Home"),
+            "useragent": QPushButton("PC"),
+            "urlbar": QLineEdit(self),
+            "progressbar": QProgressBar(self),
+        }
+        self.toolbar["back"].setIcon(QIcon("assets/icons/back.svg"))
+        self.toolbar["back"].clicked.connect(lambda: self.browser.back())
+
+        self.toolbar["forward"].setIcon(QIcon("assets/icons/forward.svg"))
+        self.toolbar["forward"].clicked.connect(lambda: self.browser.forward())
+
+        self.toolbar["refresh"].setIcon(QIcon("assets/icons/refresh.svg"))
+        self.toolbar["refresh"].clicked.connect(lambda: self.browser.reload())
+
+        self.toolbar["home"].setIcon(QIcon("assets/icons/home.svg"))
+        self.toolbar["home"].clicked.connect(lambda: self.pages[self.activePage].home())
+
+        self.toolbar["useragent"].setIcon(QIcon("assets/icons/useragent_pc.svg"))
+        self.toolbar["useragent"].clicked.connect(
+            lambda: self.pages[self.activePage].toggleUserAgent()
+        )
+
+        self.toolbar["urlbar"].returnPressed.connect(
+            lambda: self.pages[self.activePage].setURL(self.toolbar["urlbar"].text())
+        )
+
+        self.toolbar["progressbar"].setValue(100)
+        self.toolbar["progressbar"].setTextVisible(False)
+
         self.pagebar.currentChanged.connect(self.__tab_changed)
         self.pagebar.tabCloseRequested.connect(self.__tab_closed)
         self.pagebar.addTab(QWidget(), "New Tab")
