@@ -43,12 +43,16 @@ jobs:
         run: |
           mv ./dist/debug/main/main.exe ./dist/complete/browser-debug.exe
           mv ./dist/full/main/main.exe ./dist/complete/browser.exe
+          echo "./browser.exe config" > ./dist/complete/start-config.bat
       - name: Linux specific distribution generation (step 2).
         if: runner.os == 'Linux'
         shell: bash
         run: |
           mv ./dist/debug/main/main ./dist/complete/browser-debug
           mv ./dist/full/main/main ./dist/complete/browser
+          echo "#!/usr/bin/env bash" > ./dist/complete/start-config.sh
+          echo "./browser config" >> ./dist/complete/start-config.sh
+          chmod +x ./dist/complete/browser ./dist/complete/browser-debug ./dist/complete/start-config.sh
       - name: Distribution generation (step 3).
         shell: bash
         run: |

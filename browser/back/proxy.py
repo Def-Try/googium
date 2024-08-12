@@ -140,7 +140,7 @@ class ProxyRunner:
             except TimeoutError:
                 pass
             while d != b"":
-                if sent_packets < 3:
+                if sent_packets < 1:
                     # HTTPS handshake isn't completed, choke our connection until all data is encrypted
                     for choke in get_chokes(d, 256, 512):
                         s.sendall(choke)

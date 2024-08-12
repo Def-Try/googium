@@ -11,46 +11,11 @@ class Page(QWidget):
         super().__init__()
 
         self.window = window
+        self.toolbar = window.toolbar
 
-        self.toolbar = {
-            "back": QPushButton("Back"),
-            "forward": QPushButton("Forward"),
-            "refresh": QPushButton("Refresh"),
-            "home": QPushButton("Home"),
-            "useragent": QPushButton("PC"),
-            "urlbar": QLineEdit(),
-            "progressbar": QProgressBar(),
-        }
-        self.toolbar["back"].setIcon(QIcon("assets/icons/back.svg"))
-        self.toolbar["back"].clicked.connect(lambda: self.back())
-
-        self.toolbar["forward"].setIcon(QIcon("assets/icons/forward.svg"))
-        self.toolbar["forward"].clicked.connect(lambda: self.forward())
-
-        self.toolbar["refresh"].setIcon(QIcon("assets/icons/refresh.svg"))
-        self.toolbar["refresh"].clicked.connect(lambda: self.refresh())
-
-        self.toolbar["home"].setIcon(QIcon("assets/icons/home.svg"))
-        self.toolbar["home"].clicked.connect(lambda: self.home())
-
-        self.toolbar["useragent"].setIcon(QIcon("assets/icons/useragent_pc.svg"))
-        self.toolbar["useragent"].clicked.connect(lambda: self.toggleUserAgent())
-
-        self.toolbar["urlbar"].returnPressed.connect(
-            lambda: self.setURL(self.toolbar["urlbar"].text())
-        )
-
-        self.toolbar["progressbar"].setValue(100)
-        self.toolbar["progressbar"].setTextVisible(False)
-
-        self.layout = QVBoxLayout(self)
-        self.toolbar_layout = QHBoxLayout(self)
-        for k in self.toolbar:
-            self.toolbar_layout.addWidget(self.toolbar[k])
-        self.layout.addLayout(self.toolbar_layout)
         self.pageselector = None
-        self.browser = QWebEngineView(self)
-        self.url = url
+        self.browser = QWebEnginePage(self)
+        self.url = None
         self.useragent = useragent
         if useragent == "pc":
             self.r_useragent = BROWSER_USERAGENT_PC
@@ -58,19 +23,19 @@ class Page(QWidget):
             self.r_useragent = BROWSER_USERAGENT_MOBILE
         else:
             raise ValueError("Page's useragent is invalid (not 'pc' or 'mobile')")
-        self.browser.setUrl(QUrl(self.url))
-        self.browser.page().profile().setHttpUserAgent(self.r_useragent)
+        self.setURL(QUrl(url))
+        self.browser.profile().setHttpUserAgent(self.r_useragent)
         self.browser.loadStarted.connect(self.__loadStarted)
         self.browser.loadProgress.connect(self.__loadProgress)
         self.browser.loadFinished.connect(self.__loadFinished)
         self.browser.titleChanged.connect(self.__titleChanged)
         self.browser.iconChanged.connect(self.__iconChanged)
         self.browser.urlChanged.connect(self.__updatedURL)
-        self.layout.addWidget(self.browser)
 
     def setURL(self, url: str):
         self.url = url
         self.updateURL()
+        self.__updatedURL(url)
 
     def updateURL(self):
         self.browser.setUrl(QUrl(self.url))
@@ -103,10 +68,7 @@ class Page(QWidget):
                 self.browser.parent().frameGeometry().width(),
                 self.browser.parent().frameGeometry().height(),
             )
-            self.browser.setMaximumSize(
-                self.browser.parent().frameGeometry().width(),
-                self.browser.parent().frameGeometry().height(),
-            )
+            self.browser.setMaximumSize(16777215, 16777215)
             self.browser.move(0, 0)
         elif self.useragent == "mobile":
             self.browser.resize(
