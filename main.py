@@ -1,7 +1,7 @@
 import os
 import sys
 
-if sys.argv[1] == "config":
+if len(sys.argv) > 1 and sys.argv[1] == "config":
     from browser.config import main
 
     exit(main())

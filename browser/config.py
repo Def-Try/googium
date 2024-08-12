@@ -17,7 +17,10 @@ import json
 import os
 import sys
 
-CONFIG_FILE = "userdata/config.json"
+USERDATA_PATH = "userdata"
+os.makedirs(USERDATA_PATH, exist_ok=True)
+
+CONFIG_FILE = USERDATA_PATH + "/config.json"
 
 
 class ConfigApp(QWidget):
