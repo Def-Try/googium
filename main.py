@@ -1,8 +1,9 @@
 import os
 import sys
 
-if len(sys.argv) > 1 and sys.argv[1] == 'config':
+if len(sys.argv) > 1 and sys.argv[1] == "config":
     from browser.config import main
+
     sys.exit(main())
 
 
@@ -25,7 +26,7 @@ browser = QApplication(sys.argv)
 protocol.preinit()
 
 QApplication.setApplicationName("googium")
-browser.setPalette(qdarktheme.load_palette('light'))
+browser.setPalette(qdarktheme.load_palette("light"))
 
 window = MainWindow()
 window.setMinimumSize(640, 480)
