@@ -2,7 +2,10 @@ import json
 import sys
 import os
 
-CONFIG_FILE = "userdata/config.json"
+USERDATA_PATH = "userdata"
+os.makedirs(USERDATA_PATH, exist_ok=True)
+
+CONFIG_FILE = USERDATA_PATH+"/config.json"
 
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit, QFileDialog, \
     QMessageBox, QGridLayout, QGroupBox, QComboBox

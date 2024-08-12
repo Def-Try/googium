@@ -37,7 +37,6 @@ jobs:
             --distpath ./dist/debug
           mkdir ./dist/complete
           mv ./dist/debug/main/_internal ./dist/complete
-          mkdir ./dist/complete/userdata
       - name: Windows specific distribution generations (step 2).
         if: runner.os == 'Windows'
         shell: bash
