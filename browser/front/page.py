@@ -1,3 +1,5 @@
+import pprint
+
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWebEngineWidgets import *
@@ -17,6 +19,10 @@ class Page(QWidget):
         self.browser = QWebEnginePage(self)
         self.url = None
         self.useragent = useragent
+        self.active = False
+        self.load_progress = 0
+        self.history_ptr = [0, 0]
+        self.history = [[]]
         if useragent == "pc":
             self.r_useragent = BROWSER_USERAGENT_PC
         elif useragent == "mobile":
@@ -25,12 +31,16 @@ class Page(QWidget):
             raise ValueError("Page's useragent is invalid (not 'pc' or 'mobile')")
         self.setURL(QUrl(url))
         self.browser.profile().setHttpUserAgent(self.r_useragent)
+        self.browser.profile().setPersistentStoragePath(USERDATA_PATH+"/persistent_storage")
         self.browser.loadStarted.connect(self.__loadStarted)
         self.browser.loadProgress.connect(self.__loadProgress)
         self.browser.loadFinished.connect(self.__loadFinished)
         self.browser.titleChanged.connect(self.__titleChanged)
         self.browser.iconChanged.connect(self.__iconChanged)
         self.browser.urlChanged.connect(self.__updatedURL)
+
+    def compileHistory(self):
+        pass
 
     def setURL(self, url: str):
         self.url = url
@@ -40,14 +50,16 @@ class Page(QWidget):
     def updateURL(self):
         self.browser.setUrl(QUrl(self.url))
 
-    def refresh(self):
-        self.browser.reload()
+    def reload(self):
+        self.browser.action(QWebEnginePage.WebAction.Reload).activate(QAction.ActionEvent.Trigger)
 
     def back(self):
-        self.browser.back()
+        self.history_ptr[0] -= 1
+        self.browser.action(QWebEnginePage.WebAction.Back).activate(QAction.ActionEvent.Trigger)
 
     def forward(self):
-        self.browser.forward()
+        self.history_ptr[0] += 1
+        self.browser.action(QWebEnginePage.WebAction.Forward).activate(QAction.ActionEvent.Trigger)
 
     def home(self):
         self.setURL(BROWSER_HOME)
@@ -97,10 +109,19 @@ class Page(QWidget):
         )
 
     def __updatedURL(self, url):
+        if self.history_ptr[0] != len(self.history[self.history_ptr[1]]):
+            self.history_ptr[1] += 1
+            self.history.append(self.history[self.history_ptr[1] - 1][:self.history_ptr[0]-1])
+        self.history_ptr[0] += 1
+        self.history[self.history_ptr[1]].append(url)
+        pprint.pprint(self.history)
+        print(self.history_ptr)
+        if not self.active:
+            return
         self.toolbar["urlbar"].setText(url.toString())
 
     def __titleChanged(self, title):
-        if self.window.pagebar.currentIndex() == self.pageselector:
+        if self.window.pagebar.currentIndex() == self.pageselector and self.active:
             self.window.setWindowTitle(f"{BROWSER_NAME} - {title}")
         title = (
             title
@@ -113,13 +134,19 @@ class Page(QWidget):
         self.window.pagebar.setTabIcon(self.pageselector, icon)
 
     def __loadStarted(self):
-        self.toolbar["progressbar"].setValue(0)
+        if self.active:
+            self.toolbar["progressbar"].setValue(0)
+        self.load_progress = 0
         # if self.window.pagebar.currentIndex() == self.pageselector:
         #    self.window.setWindowTitle(f"{BROWSER_NAME} - Page #{self.pageselector + 1}")
         # self.window.pagebar.setTabText(self.pageselector, f"Page #{self.pageselector + 1}")
 
     def __loadFinished(self):
-        self.toolbar["progressbar"].setValue(100)
+        if self.active:
+            self.toolbar["progressbar"].setValue(100)
+        self.load_progress = 100
 
     def __loadProgress(self, n):
-        self.toolbar["progressbar"].setValue(n)
+        if self.active:
+            self.toolbar["progressbar"].setValue(n)
+        self.load_progress = n

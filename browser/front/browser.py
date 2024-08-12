@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtWebEngineWidgets import *
 from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 
 from browser.config import *
 from browser.front.page import Page
@@ -29,13 +30,13 @@ class MainWindow(QMainWindow):
             "progressbar": QProgressBar(self),
         }
         self.toolbar["back"].setIcon(QIcon("assets/icons/back.svg"))
-        self.toolbar["back"].clicked.connect(lambda: self.browser.back())
+        self.toolbar["back"].clicked.connect(lambda: self.pages[self.activePage].back())
 
         self.toolbar["forward"].setIcon(QIcon("assets/icons/forward.svg"))
-        self.toolbar["forward"].clicked.connect(lambda: self.browser.forward())
+        self.toolbar["forward"].clicked.connect(lambda: self.pages[self.activePage].forward())
 
         self.toolbar["refresh"].setIcon(QIcon("assets/icons/refresh.svg"))
-        self.toolbar["refresh"].clicked.connect(lambda: self.browser.reload())
+        self.toolbar["refresh"].clicked.connect(lambda: self.pages[self.activePage].reload())
 
         self.toolbar["home"].setIcon(QIcon("assets/icons/home.svg"))
         self.toolbar["home"].clicked.connect(lambda: self.pages[self.activePage].home())
@@ -44,7 +45,7 @@ class MainWindow(QMainWindow):
         self.toolbar["useragent"].clicked.connect(lambda: self.pages[self.activePage].toggleUserAgent())
 
         self.toolbar["urlbar"].returnPressed.connect(
-            lambda: self.pages[self.activePage].setURL(self.toolbar["urlbar"].text())
+            lambda: self.pages[self.activePage].setURL(QUrl(self.toolbar["urlbar"].text()))
         )
 
         self.toolbar["progressbar"].setValue(100)
@@ -103,6 +104,12 @@ class MainWindow(QMainWindow):
         # self.setLayout(self.layout)
         self.centralWidget.setLayout(self.layout)
 
+    def closeEvent(self, evnt):
+        for page in self.pages:
+            page.compileHistory()
+
+        super().closeEvent(evnt)
+
     def new_tab(self):
         page = Page(self)
         page.pageselector = self.pagebar.insertTab(
@@ -112,10 +119,14 @@ class MainWindow(QMainWindow):
         return self.pagebar.count() - 2
 
     def __tab_changed(self, index):
+        if self.pagebar.currentIndex() < len(self.pages):
+            self.pages[self.pagebar.currentIndex()].active = False
         if index == self.pagebar.count() - 1:
             self.pagebar.setCurrentIndex(self.new_tab())
         self.browser.setPage(self.pages[index].browser)
+        self.pages[index].active = True
         self.activePage = index
+        self.toolbar['progressbar'].setValue(self.pages[index].load_progress)
         self.setWindowTitle(f"{BROWSER_NAME} - {self.pagebar.tabText(index)}")
 
     def __tab_closed(self, index):
