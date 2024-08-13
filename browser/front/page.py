@@ -15,6 +15,7 @@ class Page(QWidget):
         self.window = window
         self.toolbar = window.toolbar
 
+        self.went_back = False
         self.pageselector = None
         self.browser = QWebEnginePage(self)
         self.url = None
@@ -22,7 +23,7 @@ class Page(QWidget):
         self.active = False
         self.load_progress = 0
         self.history_ptr = [0, 0]
-        self.history = [[]]
+        self.history = [[[-1, -1]]]
         if useragent == "pc":
             self.r_useragent = BROWSER_USERAGENT_PC
         elif useragent == "mobile":
@@ -54,11 +55,12 @@ class Page(QWidget):
         self.browser.action(QWebEnginePage.WebAction.Reload).activate(QAction.ActionEvent.Trigger)
 
     def back(self):
-        self.history_ptr[0] -= 1
+        self.went_back = True
+        self.history_ptr[1] -= 1
         self.browser.action(QWebEnginePage.WebAction.Back).activate(QAction.ActionEvent.Trigger)
 
     def forward(self):
-        self.history_ptr[0] += 1
+        self.history_ptr[1] += 1
         self.browser.action(QWebEnginePage.WebAction.Forward).activate(QAction.ActionEvent.Trigger)
 
     def home(self):
@@ -109,13 +111,16 @@ class Page(QWidget):
         )
 
     def __updatedURL(self, url):
-        if self.history_ptr[0] != len(self.history[self.history_ptr[1]]):
+        if not self.went_back:
+            if self.history_ptr[1] < len(self.history[self.history_ptr[0]]) - 1:
+                self.history += [[[self.history_ptr[0], self.history_ptr[1]]]]
+                self.history_ptr[0] += 1
+                self.history_ptr[1] = -1
             self.history_ptr[1] += 1
-            self.history.append(self.history[self.history_ptr[1] - 1][:self.history_ptr[0]-1])
-        self.history_ptr[0] += 1
-        self.history[self.history_ptr[1]].append(url)
+            self.history[self.history_ptr[0]].append(url)
         pprint.pprint(self.history)
         print(self.history_ptr)
+        self.went_back = False
         if not self.active:
             return
         self.toolbar["urlbar"].setText(url.toString())
