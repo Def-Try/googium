@@ -12,6 +12,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle(BROWSER_NAME)
         self.showMaximized()
+        self.setStyleSheet("background-color: rgb(41, 41, 41)")
         self.hide()
         self.browser = QWebEngineView(self)
 
@@ -19,6 +20,17 @@ class MainWindow(QMainWindow):
         self.activePage = 0
 
         self.pagebar = QTabBar(self)
+        self.pagebar.setStyleSheet("QTabWidget {\n"
+        "background-color: rgb(52, 21, 91);\n"
+        "font: 75 10pt \"IBM Plex Mono\";\n"
+        "color: rgb(248, 248, 248);\n"
+        "border : 2px solid rgb(248, 248, 248);\n"
+        "border-radius : 2px;\n"
+        "}\n"
+        "QLabel { color : f9f9f9}"
+        "QTabWidget:hover {\n"
+        "border-radius : 5px;\n"
+        "}")
 
         self.toolbar = {
             "back": QPushButton("Back"),
@@ -31,25 +43,98 @@ class MainWindow(QMainWindow):
         }
         self.toolbar["back"].setIcon(QIcon("assets/icons/back.svg"))
         self.toolbar["back"].clicked.connect(lambda: self.pages[self.activePage].back())
+        self.toolbar['back'].setStyleSheet("QPushButton {\n"
+        "background-color: rgb(52, 21, 91);\n"
+        "font: 75 8pt \"IBM Plex Mono\";\n"
+        "color: rgb(248, 248, 248);\n"
+        "border : 2px solid rgb(248, 248, 248);\n"
+        "border-radius : 1px;\n"
+        "}\n"
+        "QPushButton:hover {\n"
+        "border-radius : 5px;\n"
+        "}")
 
         self.toolbar["forward"].setIcon(QIcon("assets/icons/forward.svg"))
-        self.toolbar["forward"].clicked.connect(lambda: self.pages[self.activePage].forward())
+        self.toolbar["forward"].clicked.connect(lambda: self.forward())
+        self.toolbar['forward'].setStyleSheet("QPushButton {\n"
+        "background-color: rgb(52, 21, 91);\n"
+        "font: 75 8pt \"IBM Plex Mono\";\n"
+        "color: rgb(248, 248, 248);\n"
+        "border : 2px solid rgb(248, 248, 248);\n"
+        "border-radius : 1px;\n"
+        "}\n"
+        "QPushButton:hover {\n"
+        "border-radius : 5px;\n"
+        "}")
 
         self.toolbar["refresh"].setIcon(QIcon("assets/icons/refresh.svg"))
-        self.toolbar["refresh"].clicked.connect(lambda: self.pages[self.activePage].reload())
+        self.toolbar["refresh"].clicked.connect(lambda: self.refresh())
+        self.toolbar['refresh'].setStyleSheet("QPushButton {\n"
+        "background-color: rgb(52, 21, 91);\n"
+        "font: 75 8pt \"IBM Plex Mono\";\n"
+        "color: rgb(248, 248, 248);\n"
+        "border : 2px solid rgb(248, 248, 248);\n"
+        "border-radius : 1px;\n"
+        "}\n"
+        "QPushButton:hover {\n"
+        "border-radius : 5px;\n"
+        "}")
 
         self.toolbar["home"].setIcon(QIcon("assets/icons/home.svg"))
-        self.toolbar["home"].clicked.connect(lambda: self.pages[self.activePage].home())
+        self.toolbar["home"].clicked.connect(lambda: self.home())
+        self.toolbar['home'].setStyleSheet("QPushButton {\n"
+        "background-color: rgb(52, 21, 91);\n"
+        "font: 75 8pt \"IBM Plex Mono\";\n"
+        "color: rgb(248, 248, 248);\n"
+        "border : 2px solid rgb(248, 248, 248);\n"
+        "border-radius : 1px;\n"
+        "}\n"
+        "QPushButton:hover {\n"
+        "border-radius : 5px;\n"
+        "}")
 
         self.toolbar["useragent"].setIcon(QIcon("assets/icons/useragent_pc.svg"))
-        self.toolbar["useragent"].clicked.connect(lambda: self.pages[self.activePage].toggleUserAgent())
+        self.toolbar["useragent"].clicked.connect(lambda: self.toggleUserAgent())
+        self.toolbar['useragent'].setStyleSheet("QPushButton {\n"
+        "background-color: rgb(52, 21, 91);\n"
+        "font: 75 8pt \"IBM Plex Mono\";\n"
+        "color: rgb(248, 248, 248);\n"
+        "border : 2px solid rgb(248, 248, 248);\n"
+        "border-radius : 1px;\n"
+        "}\n"
+        "QPushButton:hover {\n"
+        "border-radius : 5px;\n"
+        "}")
 
         self.toolbar["urlbar"].returnPressed.connect(
-            lambda: self.pages[self.activePage].setURL(QUrl(self.toolbar["urlbar"].text()))
+            lambda: self.setURL(self.toolbar["urlbar"].text())
         )
+        self.toolbar['urlbar'].setStyleSheet("QLineEdit {\n"
+        "background-color: rgb(52, 21, 91);\n"
+        "font: 75 8pt \"IBM Plex Mono\";\n"
+        "color: rgb(248, 248, 248);\n"
+        "border : 2px solid rgb(248, 248, 248);\n"
+        "border-radius : 1px;\n"
+        "}\n"
+        "QLineEdit:hover {\n"
+        "border-radius : 5px;\n"
+        "}")
 
         self.toolbar["progressbar"].setValue(100)
         self.toolbar["progressbar"].setTextVisible(False)
+        self.toolbar['progressbar'].setStyleSheet("QProgressBar {\n"
+        "background-color: rgb(52, 21, 91);\n"
+        "border : 2px solid rgb(248, 248, 248);\n"
+        "border-radius : 2px;\n"
+        "}\n"
+        "QProgressBar:hover {\n"
+        "border-radius : 5px;\n"
+        "}\n"
+        "QProgressBar::chunk {\n"
+        "background-color: rgb(72, 41, 111);\n"
+        "border : 2px solid rgba(72, 41, 111);\n"
+        "border-radius : 2px;\n"
+        "}")
 
         self.pagebar.currentChanged.connect(self.__tab_changed)
         self.pagebar.tabCloseRequested.connect(self.__tab_closed)
